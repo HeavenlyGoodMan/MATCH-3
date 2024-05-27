@@ -1,0 +1,400 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include "glut.h"
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <time.h>
+using std::rand;
+using std::srand;
+using std::cin;
+using std::cout;
+using std::endl;
+using std::vector;
+using std::string;
+using std::pair;
+using std::swap;
+double x_old = 0, y_old = 0;
+void timer(int = 0) {
+	glutPostRedisplay();
+}
+struct figurki
+{
+private:
+	vector<vector<int>> el = { {0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0} };
+	vector <vector<double>> colors = { {1,0,0},{0.7,0.4,0.5},{0.8,0,9,0},{0.2,0.9,1},{0.6,0.0,0.3},{0.3,0.5,0.7} };
+public:
+	int score = 0;
+	figurki() {
+		srand(time(NULL));
+		int x;
+		for (int i = 0; i < 8; ++i) {
+			for (int j = 0; j < 8; ++j) {
+				x = rand() % 5;
+				while ((i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == x)
+					|| (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == x)) {
+					x = rand() % 5;
+				}
+				el[i][j] = x;
+			}
+		}
+	}
+	vector<int>& operator[](unsigned i) {
+		return el[i];
+	}
+	bool access() {
+		for (int i = 0; i < 8; ++i) {
+			for (int j = 0; j < 8; ++j) {
+				if ((i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == el[i][j])
+					|| (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == el[i][j])) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	void drawfigur() {
+		const char* text = "score";
+		glClear(GL_COLOR_BUFFER_BIT);
+		glColor3f(1, 0.5, 0.6);
+		glLineWidth(2);
+		glBegin(GL_LINES);
+		glVertex2f(-8, -8);
+		glVertex2f(8, -8);
+		glVertex2f(-8, 8);
+		glVertex2f(8, 8);
+		glVertex2f(-8, -8);
+		glVertex2f(-8, 8);
+		glVertex2f(8, -8);
+		glVertex2f(8, 8);
+		glEnd();
+		glColor3f(1, 0.7, 0.6);
+		glLineWidth(1);
+		glBegin(GL_LINES);
+		for (int i = -6; i < 8; i += 2) {
+			glVertex2f(-8, i);
+			glVertex2f(8, i);
+			glVertex2f(i, -8);
+			glVertex2f(i, 8);
+		}
+		glEnd();
+		glBegin(GL_POLYGON);
+		glColor3f(0.2, 0.5, 0.7);
+		glVertex2f(-4, 8.2);
+		glVertex2f(4, 8.2);
+		glVertex2f(4, 9.8);
+		glVertex2f(-4, 9.8);
+		glEnd();
+
+		glColor3f(0.1, 0.9, 0.7);
+		string numberString = std::to_string(score);
+		numberString = "score " + numberString + "/2024";
+		float textX = -4 + 2.7;
+		float textY = 8.2 + 0.6;
+		glRasterPos2f(textX, textY);
+		for (const char& character : numberString) {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, character);
+		}
+		for (int i = 0; i < 8; ++i) {
+			for (int j = 0; j < 8; ++j) {
+				if (el[i][j] == 0) {
+					double x1 = 2 * j - 7, y1 = 2 * i - 7;
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем красный цвет
+					glBegin(GL_TRIANGLE_FAN);
+					glVertex2f(x1, y1); // центр круга
+					int numSegments = 50;
+					for (int i = 0; i <= numSegments; i++) {
+						double angle = 2.0 * M_PI * i / numSegments;
+						double x = cos(angle) * 0.8 + x1; // радиус круга = 0.5
+						double y = sin(angle) * 0.8 + y1;
+						glVertex2f(x, y);
+					}
+					glEnd();
+				}
+				else if (el[i][j] == 1) {
+					glBegin(GL_QUADS);
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]); // устанавливаем цвет красный
+					glVertex2f(2 * j - 7.75, 2 * i - 7.75);
+					glVertex2f(2 * j - 6.25, 2 * i - 7.75);
+					glVertex2f(2 * j - 6.25, 2 * i - 6.25);
+					glVertex2f(2 * j - 7.75, 2 * i - 6.25);
+					glEnd();
+				}
+				else if (el[i][j] == 2) {
+					double x1 = 2 * j - 7, y1 = 2 * i - 7;
+					glBegin(GL_POLYGON);
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					for (int i = 0; i < 6; ++i) {
+						double angle = 2.0 * M_PI * i / 6;
+						glVertex2f(cos(angle) * 0.9 + x1, sin(angle) * 0.9 + y1);
+					}
+					glEnd();
+
+				}
+				else if (el[i][j] == 3) {
+					double x1 = 2 * j - 7, y1 = 2 * i - 7;
+					glBegin(GL_POLYGON);
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					for (int i = 0; i < 4; ++i) {
+						double angle = 2.0 * M_PI * i / 4;
+						glVertex2f((cos(angle) * 0.9 + x1), (sin(angle) * 0.9 + y1));
+					}
+					glEnd();
+
+				}
+				else if (el[i][j] == 4) {
+					double x1 = 2 * j - 7.2, y1 = 2 * i - 7;
+					glBegin(GL_POLYGON);
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					for (int i = 0; i < 3; ++i) {
+						double angle = -(2.0 * M_PI * i / 3);
+						glVertex2f((cos(angle) * 0.9 + x1), (sin(angle) * 0.9 + y1));
+					}
+					glEnd();
+
+				}
+				else if (el[i][j] == 5) {
+					glBegin(GL_QUADS);
+					glColor3f(1, 1, 1); // устанавливаем цвет красный
+					glVertex2f(2 * j - 7.95, 2 * i - 7.95);
+					glVertex2f(2 * j - 6.05, 2 * i - 7.95);
+					glVertex2f(2 * j - 6.05, 2 * i - 6.05);
+					glVertex2f(2 * j - 7.95, 2 * i - 6.05);
+					glEnd();
+				}
+			}
+		}
+		glFlush();
+		glutSwapBuffers();
+	}
+	void deletefig(double i1, double j1, double i2, double j2) {
+		swap(el[i1][j1],el[i2][j2]);
+		this->drawfigur();
+		if (this->access() == 0) {
+			swap(el[i1][j1], el[i2][j2]);
+		}
+		glutTimerFunc(500, timer, 0);
+		int count, old_i = 0, l,old_j, gloval_l=0;
+		while (true) {
+			gloval_l = 0;
+			for (int i = 0; i < 8; ++i) {
+				for (int j = 0; j < 8; ++j) {
+					l = 0;
+					if (i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == el[i][j]) {
+						gloval_l = 1;
+						l = 1;
+						old_i = i - 2;
+						count = 3;
+						++i;
+						while (i < 8 && el[i][j] == el[i - 1][j]) {
+							++count;
+							++i;
+						}
+						for (int k = old_i; k < old_i + count; ++k) {
+							el[k][j] = 5;
+						}
+						glutTimerFunc(500, timer, 0);
+						int x;
+						for (int k = count; k > 0; --k) {
+							for (int p = k + old_i; p < 9; ++p) {
+								if (p != 8) {
+									swap(el[p][j], el[p - 1][j]);
+								}
+								else {
+									x = rand() % 5;
+									swap(el[p - 1][j], x);
+								}
+							}
+							glutTimerFunc(500, timer, 0);
+						}
+						score += pow(2, count);
+						i = 0;
+						j = 0;
+					}
+					else if (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == el[i][j]) {
+						gloval_l= 1;
+						l = 1;
+						old_j = j - 2;
+						count = 3;
+						++j;
+						while (j < 8 && el[i][j] == el[i][j-1]) {
+							++count;
+							++j;
+						}
+						for (int k = old_j; k < old_j + count; ++k) {
+							el[i][k] = 5;
+						}
+						glutTimerFunc(500, timer, 0);
+						int x;
+							for (int p = 1 + i; p < 9; ++p) {
+								for (int m = old_j; m < old_j + count; ++m) {
+									if (p != 8) {
+									swap(el[p][m], el[p-1][m]);
+									}
+									else {
+										x = rand() % 5;
+										
+									swap(el[p - 1][m], x);
+									}
+								}
+							}
+							glutTimerFunc(500, timer, 0);
+						score += pow(2, count);
+						i = 0;
+						j = 0;
+					 }
+					if (l == 1) {
+						break;
+					}
+				} if (l == 1) {
+					break;
+				}
+			}
+			if (gloval_l == 0) {
+				break;
+			}
+		}
+		
+	
+	}
+	
+};
+figurki A;
+//хранение моих фигурок, которые мы двигаем;
+
+void display() {
+
+	A.drawfigur();
+}
+
+void mouseClickHandler(int button, int state, int x, int y) {
+	double x_new, y_new;
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		x_old = (x - 415) / 41.5;
+		y_old = -(y - 415) / 41.5;
+	}
+	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+		int l1 = 0, l2 = 0;
+		int i1, j1, i2, j2;
+		x_new = (x - 415) / 41.5;
+		y_new = -(y - 415) / 41.5;
+		if (x_old - x_new > 1 && x_old - x_new < 2.5 && abs(y_old - y_new) < 0.3) {
+			//cout << "1";
+			for (int i = 0; i < 8; ++i) {
+				for (int j = 0; j < 8; ++j) {
+					if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+						i1 = i;
+						j1 = j;
+						l1 = 1;
+					}
+					if (j * 2 - 8 < x_new && j * 2 - 6 > x_new && i * 2 - 8 < y_new && i * 2 - 6 > y_new) {
+						i2 = i;
+						j2 = j;
+						l2 = 1;
+					}
+				}
+				if (l1 == 1 && l2 == 1) {
+					break;
+				}
+			}
+			if (l1 == 1 && l2 == 1) {
+				A.deletefig(i1, j1, i2, j2);
+			}
+		}
+		else if (x_new - x_old > 1 && x_new - x_old < 2.5 && abs(y_old - y_new) < 0.3) {
+			//	cout << "2";
+			for (int i = 0; i < 8; ++i) {
+				for (int j = 0; j < 8; ++j) {
+					if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+						i1 = i;
+						j1 = j;
+						l1 = 1;
+					}
+					if (j * 2 - 8 < x_new && j * 2 - 6 > x_new && i * 2 - 8 < y_new && i * 2 - 6 > y_new) {
+						i2 = i;
+						j2 = j;
+						l2 = 1;
+					}
+				}
+				if (l1 == 1 && l2 == 1) {
+					break;
+				}
+			}
+			if (l1 == 1 && l2 == 1) {
+				A.deletefig(i1, j1, i2, j2);
+				///
+				
+			}
+		}
+		else if (y_old - y_new > 1 && y_old - y_new < 2.5 && abs(x_old - x_new) < 0.3) {
+			//	cout << "3";
+			for (int i = 0; i < 8; ++i) {
+				for (int j = 0; j < 8; ++j) {
+					if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+						i1 = i;
+						j1 = j;
+						l1 = 1;
+					}
+					if (j * 2 - 8 < x_new && j * 2 - 6 > x_new && i * 2 - 8 < y_new && i * 2 - 6 > y_new) {
+						i2 = i;
+						j2 = j;
+						l2 = 1;
+					}
+				}
+				if (l1 == 1 && l2 == 1) {
+					break;
+				}
+			}
+			if (l1 == 1 && l2 == 1) {
+				///
+				A.deletefig(i1, j1, i2, j2);
+				
+			}
+		}
+		else if (y_new - y_old > 1 && y_new - y_old < 2.5 && abs(x_old - x_new) < 0.3) {
+			//	cout << "4";
+			for (int i = 0; i < 8; ++i) {
+				for (int j = 0; j < 8; ++j) {
+					if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+						i1 = i;
+						j1 = j;
+						l1 = 1;
+					}
+					if (j * 2 - 8 < x_new && j * 2 - 6 > x_new && i * 2 - 8 < y_new && i * 2 - 6 > y_new) {
+						i2 = i;
+						j2 = j;
+						l2 = 1;
+					}
+				}
+				if (l1 == 1 && l2 == 1) {
+					break;
+				}
+			}
+			if (l1 == 1 && l2 == 1) {
+				///
+				A.deletefig(i1, j1, i2, j2);
+			}
+		}
+	}
+}
+
+int main(int argc, char** argv) {
+	setlocale(LC_ALL, "rus");
+
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+	glutInitWindowSize(830, 830);
+	glutInitWindowPosition(270, 0);
+	glutCreateWindow("");
+	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glMatrixMode(GL_PROJECTION);
+	glOrtho(-10, 10, -10, 10, -1, 1);
+	glutDisplayFunc(display);
+	glutMouseFunc(mouseClickHandler);
+
+  //  glutTimerFunc(100, timer, 0);
+	glutMainLoop();
+
+	return 0;
+}
