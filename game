@@ -16,7 +16,24 @@ using std::string;
 using std::pair;
 using std::swap;
 double x_old = 0, y_old = 0;
+bool gameOver = false;
+int timeRemaining = 5; 
 void timer(int = 0) {
+	glutPostRedisplay();
+}
+void timers(int value) {
+	
+	cout << timeRemaining << endl;
+	// Начальное количество времени (в секундах)
+	// cout << '1';
+	if (timeRemaining > 0) {
+		timeRemaining--;
+	}
+	else {
+		gameOver = true;
+	}
+	
+	glutTimerFunc(1000, timers, 0);
 	glutPostRedisplay();
 }
 struct figurki
@@ -64,123 +81,131 @@ public:
 	}
 
 	void drawfigur() {
-			const char* text = "score";
-			glClear(GL_COLOR_BUFFER_BIT);
-			glColor3f(1, 0.5, 0.6);
-			glLineWidth(2);
-			glBegin(GL_LINES);
-			glVertex2f(-8, -8);
-			glVertex2f(8, -8);
-			glVertex2f(-8, 8);
-			glVertex2f(8, 8);
-			glVertex2f(-8, -8);
-			glVertex2f(-8, 8);
-			glVertex2f(8, -8);
-			glVertex2f(8, 8);
-			glEnd();
-			glColor3f(1, 0.7, 0.6);
-			glLineWidth(1);
-			glBegin(GL_LINES);
-			for (int i = -6; i < 8; i += 2) {
-				glVertex2f(-8, i);
-				glVertex2f(8, i);
-				glVertex2f(i, -8);
-				glVertex2f(i, 8);
-			}
-			glEnd();
-			glBegin(GL_POLYGON);
-			glColor3f(0.2, 0.5, 0.7);
-			glVertex2f(-4, 8.2);
-			glVertex2f(4, 8.2);
-			glVertex2f(4, 9.8);
-			glVertex2f(-4, 9.8);
-			glEnd();
+		const char* text = "score";
+		glClear(GL_COLOR_BUFFER_BIT);
+		glColor3f(1, 0.5, 0.6);
+		glLineWidth(2);
+		glBegin(GL_LINES);
+		glVertex2f(-8, -8);
+		glVertex2f(8, -8);
+		glVertex2f(-8, 8);
+		glVertex2f(8, 8);
+		glVertex2f(-8, -8);
+		glVertex2f(-8, 8);
+		glVertex2f(8, -8);
+		glVertex2f(8, 8);
+		glEnd();
+		glColor3f(1, 0.7, 0.6);
+		glLineWidth(1);
+		glBegin(GL_LINES);
+		for (int i = -6; i < 8; i += 2) {
+			glVertex2f(-8, i);
+			glVertex2f(8, i);
+			glVertex2f(i, -8);
+			glVertex2f(i, 8);
+		}
+		glEnd();
+		glBegin(GL_POLYGON);
+		glColor3f(0.2, 0.5, 0.7);
+		glVertex2f(-4, 8.2);
+		glVertex2f(4, 8.2);
+		glVertex2f(4, 9.8);
+		glVertex2f(-4, 9.8);
+		glEnd();
+		string times = std::to_string(timeRemaining);
+		times = "times " + times;
+		float textX = -1.3;
+		float textY = -8.6;
+		glRasterPos2f(textX, textY);
+		for (const char& character : times) {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, character);
+		}
+		glFlush();
+		glColor3f(0.1, 0.9, 0.7);
+		string numberString = std::to_string(score);
+		numberString = "score " + numberString + "/2024";
+		textX = -4 + 2.7;
+		textY = 8.2 + 0.6;
+		glRasterPos2f(textX, textY);
+		for (const char& character : numberString) {
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, character);
+		}
+		for (int i = 0; i < 8; ++i) {
+			for (int j = 0; j < 8; ++j) {
+				if (el[i][j] == 0) {
+					double x1 = 2 * j - 7, y1 = 2 * i - 7;
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем красный цвет
+					glBegin(GL_TRIANGLE_FAN);
+					glVertex2f(x1, y1); // центр круга
+					int numSegments = 50;
+					for (int i = 0; i <= numSegments; i++) {
+						double angle = 2.0 * M_PI * i / numSegments;
+						double x = cos(angle) * 0.8 + x1; // радиус круга = 0.5
+						double y = sin(angle) * 0.8 + y1;
+						glVertex2f(x, y);
+					}
+					glEnd();
+				}
+				else if (el[i][j] == 1) {
+					glBegin(GL_QUADS);
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]); // устанавливаем цвет красный
+					glVertex2f(2 * j - 7.75, 2 * i - 7.75);
+					glVertex2f(2 * j - 6.25, 2 * i - 7.75);
+					glVertex2f(2 * j - 6.25, 2 * i - 6.25);
+					glVertex2f(2 * j - 7.75, 2 * i - 6.25);
+					glEnd();
+				}
+				else if (el[i][j] == 2) {
+					double x1 = 2 * j - 7, y1 = 2 * i - 7;
+					glBegin(GL_POLYGON);
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					for (int i = 0; i < 6; ++i) {
+						double angle = 2.0 * M_PI * i / 6;
+						glVertex2f(cos(angle) * 0.9 + x1, sin(angle) * 0.9 + y1);
+					}
+					glEnd();
 
-			glColor3f(0.1, 0.9, 0.7);
-			string numberString = std::to_string(score);
-			numberString = "score " + numberString + "/2024";
-			float textX = -4 + 2.7;
-			float textY = 8.2 + 0.6;
-			glRasterPos2f(textX, textY);
-			for (const char& character : numberString) {
-				glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, character);
-			}
-			for (int i = 0; i < 8; ++i) {
-				for (int j = 0; j < 8; ++j) {
-					if (el[i][j] == 0) {
-						double x1 = 2 * j - 7, y1 = 2 * i - 7;
-						glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем красный цвет
-						glBegin(GL_TRIANGLE_FAN);
-						glVertex2f(x1, y1); // центр круга
-						int numSegments = 50;
-						for (int i = 0; i <= numSegments; i++) {
-							double angle = 2.0 * M_PI * i / numSegments;
-							double x = cos(angle) * 0.8 + x1; // радиус круга = 0.5
-							double y = sin(angle) * 0.8 + y1;
-							glVertex2f(x, y);
-						}
-						glEnd();
+				}
+				else if (el[i][j] == 3) {
+					double x1 = 2 * j - 7, y1 = 2 * i - 7;
+					glBegin(GL_POLYGON);
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					for (int i = 0; i < 4; ++i) {
+						double angle = 2.0 * M_PI * i / 4;
+						glVertex2f((cos(angle) * 0.9 + x1), (sin(angle) * 0.9 + y1));
 					}
-					else if (el[i][j] == 1) {
-						glBegin(GL_QUADS);
-						glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]); // устанавливаем цвет красный
-						glVertex2f(2 * j - 7.75, 2 * i - 7.75);
-						glVertex2f(2 * j - 6.25, 2 * i - 7.75);
-						glVertex2f(2 * j - 6.25, 2 * i - 6.25);
-						glVertex2f(2 * j - 7.75, 2 * i - 6.25);
-						glEnd();
-					}
-					else if (el[i][j] == 2) {
-						double x1 = 2 * j - 7, y1 = 2 * i - 7;
-						glBegin(GL_POLYGON);
-						glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
-						for (int i = 0; i < 6; ++i) {
-							double angle = 2.0 * M_PI * i / 6;
-							glVertex2f(cos(angle) * 0.9 + x1, sin(angle) * 0.9 + y1);
-						}
-						glEnd();
+					glEnd();
 
+				}
+				else if (el[i][j] == 4) {
+					double x1 = 2 * j - 7.2, y1 = 2 * i - 7;
+					glBegin(GL_POLYGON);
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					for (int i = 0; i < 3; ++i) {
+						double angle = -(2.0 * M_PI * i / 3);
+						glVertex2f((cos(angle) * 0.9 + x1), (sin(angle) * 0.9 + y1));
 					}
-					else if (el[i][j] == 3) {
-						double x1 = 2 * j - 7, y1 = 2 * i - 7;
-						glBegin(GL_POLYGON);
-						glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
-						for (int i = 0; i < 4; ++i) {
-							double angle = 2.0 * M_PI * i / 4;
-							glVertex2f((cos(angle) * 0.9 + x1), (sin(angle) * 0.9 + y1));
-						}
-						glEnd();
+					glEnd();
 
-					}
-					else if (el[i][j] == 4) {
-						double x1 = 2 * j - 7.2, y1 = 2 * i - 7;
-						glBegin(GL_POLYGON);
-						glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
-						for (int i = 0; i < 3; ++i) {
-							double angle = -(2.0 * M_PI * i / 3);
-							glVertex2f((cos(angle) * 0.9 + x1), (sin(angle) * 0.9 + y1));
-						}
-						glEnd();
-
-					}
-					else if (el[i][j] == 5) {
-						glBegin(GL_QUADS);
-						glColor3f(1, 1, 1); // устанавливаем цвет красный
-						glVertex2f(2 * j - 7.95, 2 * i - 7.95);
-						glVertex2f(2 * j - 6.05, 2 * i - 7.95);
-						glVertex2f(2 * j - 6.05, 2 * i - 6.05);
-						glVertex2f(2 * j - 7.95, 2 * i - 6.05);
-						glEnd();
-					}
+				}
+				else if (el[i][j] == 5) {
+					glBegin(GL_QUADS);
+					glColor3f(1, 1, 1); // устанавливаем цвет красный
+					glVertex2f(2 * j - 7.95, 2 * i - 7.95);
+					glVertex2f(2 * j - 6.05, 2 * i - 7.95);
+					glVertex2f(2 * j - 6.05, 2 * i - 6.05);
+					glVertex2f(2 * j - 7.95, 2 * i - 6.05);
+					glEnd();
 				}
 			}
-			glFlush();
-			
+		}
+
+		glFlush();
 	}
 	void deletefig(double i1, double j1, double i2, double j2) {
 		vector<figurki> A;
 		figurki copy, th;
-		th=*this;
+		th = *this;
 		swap(el[i1][j1], el[i2][j2]);
 		this->drawfigur();
 		if (this->access() == 0) {
@@ -260,11 +285,11 @@ public:
 						j = 0;
 					}
 					for (int i = 0; i < A.size(); ++i) {
-					std::this_thread::sleep_for(std::chrono::milliseconds(300)); // задержка в 1 секунду
-					A[i].drawfigur();
+						std::this_thread::sleep_for(std::chrono::milliseconds(300)); // задержка в 1 секунду
+						A[i].drawfigur();
 					}
 					while (A.size() != 0) {
-					A.pop_back();
+						A.pop_back();
 					}
 					if (l == 1) {
 						break;
@@ -274,13 +299,11 @@ public:
 					break;
 				}
 			}
-			
+
 			if (gloval_l == 0) {
 				break;
 			}
 		}
-
-
 	}
 
 };
@@ -288,6 +311,20 @@ figurki A;
 //хранение моих фигурок, которые мы двигаем;
 void display() {
 	A.drawfigur();
+
+	if (gameOver) {
+		cout << "1";
+		glColor3f(0.5, 0.2, 0.7);
+		string numberString = "You lose!";
+		float textX = -1.4;
+		float textY = -9;
+		glRasterPos2f(textX, textY);
+		for (const char& character : numberString) {
+			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
+		}
+		glFlush();
+	}
+	glutSwapBuffers();
 }
 void mouseClickHandler(int button, int state, int x, int y) {
 	double x_new, y_new;
@@ -412,9 +449,9 @@ int main(int argc, char** argv) {
 	glMatrixMode(GL_PROJECTION);
 	glOrtho(-10, 10, -10, 10, -1, 1);
 	glutDisplayFunc(display);
+	glutTimerFunc(100, timers, 0);
 	glutMouseFunc(mouseClickHandler);
 
-	//  glutTimerFunc(100, timer, 0);
 	glutMainLoop();
 
 	return 0;
