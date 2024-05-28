@@ -35,20 +35,26 @@ void timers(int value) {
 struct figurki
 {
 private:
-	vector<vector<int>> el = { {0,0,0,0,0,0,0,0}, {0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0} };
+	vector<vector<int>> el = { {0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0} };
 
 public:
-	vector <vector<double>> colors = { {1,0,0},{0.7,0.4,0.5},{0.8,0,9,0},{0.2,0.9,1},{0.6,0.0,0.3},{0.3,0.5,0.7} };
+	vector <vector<double>> colors = { {1,0,0},{0.7,0.4,0.5},{0.8,0,9,0},{0.2,0.9,1},{0.6,0.0,0.3},{0.3,0.5,0.7},{0,0.7,0,4} };
 	int score = 0;
 	figurki() {
 		srand(time(NULL));
 		int x;
 		for (int i = 0; i < 8; ++i) {
 			for (int j = 0; j < 8; ++j) {
-				x = rand() % 5;
+				x = rand() % 6;
+				if (x == 5) {
+					x = rand() % 6;
+					if (x != 5) {
+						x = rand() % 6;
+					}
+				}
 				while ((i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == x)
 					|| (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == x)) {
-					x = rand() % 5;
+					x = rand() % 6;
 				}
 				el[i][j] = x;
 			}
@@ -193,7 +199,7 @@ public:
 					glEnd();
 
 				}
-				else if (el[i][j] == 5) {
+				else if (el[i][j] == 6) {
 					glBegin(GL_QUADS);
 					glColor3f(1, 1, 1); // устанавливаем цвет красный
 					glVertex2f(2 * j - 7.95, 2 * i - 7.95);
@@ -202,113 +208,158 @@ public:
 					glVertex2f(2 * j - 7.95, 2 * i - 6.05);
 					glEnd();
 				}
+				else if (el[i][j] == 5) {
+					// Рисуем черный круг
+					double x1 = 2 * j - 7, y1 = 2 * i - 7;
+					glColor3f(0.0, 0.0, 0.0);
+					glBegin(GL_TRIANGLE_FAN);
+					glVertex2f(x1, y1); // центр круга
+					int numSegments = 50;
+					for (int i = 0; i <= numSegments; i++) {
+						double angle = 2.0 * M_PI * i / numSegments;
+						double x = cos(angle) * 0.8 + x1; // радиус круга = 0.5
+						double y = sin(angle) * 0.8 + y1;
+						glVertex2f(x, y);
+					}
+					glEnd();
+					glLineWidth(2);
+					glColor3f(0.9, 0.8, 0.3);
+					glBegin(GL_LINES);
+					glVertex2f(2 * j - 7., 2 * i - 6.6);
+					glVertex2f(2 * j - 7, 2 * i - 6);
+					glEnd();
+					glPointSize(7);
+					// Рисуем красный кружок в конце палки
+					glColor3f(1.0, 0.0, 0.0);
+					glBegin(GL_POINTS);
+					glVertex2f(2 * j - 7, 2 * i - 6);
+					glEnd();
+				}
 			}
 		}
 		glFlush();
 	}
 	void deletefig(double i1, double j1, double i2, double j2) {
-		vector<figurki> A;
-		figurki copy, th;
-		th = *this;
 		swap(el[i1][j1], el[i2][j2]);
 		this->drawfigur();
 		if (this->access() == 0) {
 			swap(el[i1][j1], el[i2][j2]);
 		}
 		glutTimerFunc(500, timer, 0);
-		int count, old_i = 0, l, old_j, gloval_l = 0;
-		while (true) {
-			gloval_l = 0;
-			for (int i = 0; i < 8; ++i) {
-				for (int j = 0; j < 8; ++j) {
-					l = 0;
-					if (i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == el[i][j]) {
-						gloval_l = 1;
-						l = 1;
-						old_i = i - 2;
-						count = 3;
-						++i;
-						while (i < 8 && el[i][j] == el[i - 1][j]) {
-							++count;
+		if (i1 == i2 && j1 == j2) {
+			int x;
+			for (int i = i1 - 1; i < i1 + 2; ++i) {
+				for (int j = j1 - 1; j < j1 + 2; ++j) {
+					if (i > 7 || j > 7) {
+						continue;
+					}
+					el[i][j] = 6;
+				}
+			}
+			this->drawfigur();
+			for (int k = 3; k > 0; --k) {
+				for (int p = k + i1-1; p < 9; ++p) {
+					for (int m = j1-1; m < j1 + 2; ++m) {
+						if (p < 8 && m<8 && m>-1 && p>-1) {
+							swap(el[p][m], el[p - 1][m]);
+						}
+						else if(p<9 && m<8 && m>-1 && p>-1){
+							x = rand() % 5;
+							swap(el[p - 1][m], x);
+						}
+					}
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(200));
+				this->drawfigur();
+				score += 15;
+			}
+		}
+		else {
+			int count, old_i = 0, l, old_j, gloval_l = 0;
+			while (true) {
+				gloval_l = 0;
+				for (int i = 0; i < 8; ++i) {
+					for (int j = 0; j < 8; ++j) {
+						l = 0;
+						if (i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == el[i][j]) {
+							gloval_l = 1;
+							l = 1;
+							old_i = i - 2;
+							count = 3;
 							++i;
-						}
-						for (int k = old_i; k < old_i + count; ++k) {
-							el[k][j] = 5;
-						}
-						copy = *this;
-						A.push_back(copy);
-						int x;
-						for (int k = count; k > 0; --k) {
-							for (int p = k + old_i; p < 9; ++p) {
-								if (p != 8) {
-									swap(el[p][j], el[p - 1][j]);
-								}
-								else {
-									x = rand() % 5;
-									swap(el[p - 1][j], x);
-								}
+							while (i < 8 && el[i][j] == el[i - 1][j]) {
+								++count;
+								++i;
 							}
-							copy = *this;
-							A.push_back(copy);
+							for (int k = old_i; k < old_i + count; ++k) {
+								el[k][j] = 6;
+							}
+							this->drawfigur();
+							int x;
+							for (int k = count; k > 0; --k) {
+								for (int p = k + old_i; p < 9; ++p) {
+									if (p != 8) {
+										swap(el[p][j], el[p - 1][j]);
+									}
+									else {
+										x = rand() % 5;
+										swap(el[p - 1][j], x);
+									}
+								}
+								std::this_thread::sleep_for(std::chrono::milliseconds(200));
+								this->drawfigur();
+							}
+							score += pow(2, count);
+							i = 0;
+							j = 0;
 						}
-						score += pow(2, count);
-						i = 0;
-						j = 0;
-					}
-					else if (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == el[i][j]) {
-						gloval_l = 1;
-						l = 1;
-						old_j = j - 2;
-						count = 3;
-						++j;
-						while (j < 8 && el[i][j] == el[i][j - 1]) {
-							++count;
+						else if (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == el[i][j]) {
+							gloval_l = 1;
+							l = 1;
+							old_j = j - 2;
+							count = 3;
 							++j;
-						}
-						for (int k = old_j; k < old_j + count; ++k) {
-							el[i][k] = 5;
-						}
-						copy = *this;
-						A.push_back(copy);
-						int x;
-						for (int p = 1 + i; p < 9; ++p) {
-							for (int m = old_j; m < old_j + count; ++m) {
-								if (p != 8) {
-									swap(el[p][m], el[p - 1][m]);
-								}
-								else {
-									x = rand() % 5;
-									swap(el[p - 1][m], x);
-								}
+							while (j < 8 && el[i][j] == el[i][j - 1]) {
+								++count;
+								++j;
 							}
-							copy = *this;
-							A.push_back(copy);
+							for (int k = old_j; k < old_j + count; ++k) {
+								el[i][k] = 6;
+							}
+							this->drawfigur();
+							int x;
+							for (int p = 1 + i; p < 9; ++p) {
+								for (int m = old_j; m < old_j + count; ++m) {
+									if (p != 8) {
+										swap(el[p][m], el[p - 1][m]);
+									}
+									else {
+										x = rand() % 5;
+										swap(el[p - 1][m], x);
+									}
+								}
+								std::this_thread::sleep_for(std::chrono::milliseconds(200));
+								this->drawfigur();
+							}
+							score += pow(2, count);
+							i = 0;
+							j = 0;
 						}
-						score += pow(2, count);
-						i = 0;
-						j = 0;
-					}
-					for (int i = 0; i < A.size(); ++i) {
-						std::this_thread::sleep_for(std::chrono::milliseconds(200)); // задержка в 1 секунду
-						A[i].drawfigur();
-					}
-					while (A.size() != 0) {
-						A.pop_back();
-					}
-					if (score >=0) {
-						gameOver = 2;
-						glutPostRedisplay();
+						if (score >= 200) {
+							gameOver = 2;
+							glutPostRedisplay();
+						}
+						if (l == 1) {
+							break;
+						}
 					}
 					if (l == 1) {
 						break;
 					}
 				}
-				if (l == 1) {
+				if (gloval_l == 0) {
 					break;
 				}
-			}
-			if (gloval_l == 0) {
-				break;
 			}
 		}
 	}
@@ -418,7 +469,21 @@ void mouseClickHandler(int button, int state, int x, int y) {
 			int i1, j1, i2, j2;
 			x_new = (x - 415) / 41.5;
 			y_new = -(y - 415) / 41.5;
-			if (x_old - x_new > 1 && x_old - x_new < 2.5 && abs(y_old - y_new) < 0.3) {
+			if (x_new == x_old && y_new == y_old) {
+				for (int i = 0; i < 8; ++i) {
+					for (int j = 0; j < 8; ++j) {
+						if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+							i1 = i;
+							j1 = j;
+							l1 = 1;
+						}
+					}
+				}
+				if (l1 == 1 && A[i1][j1]==5) {
+					A.deletefig(i1, j1, i1, j1);
+				}
+			}
+			else if (x_old - x_new > 1 && x_old - x_new < 2.5 && abs(y_old - y_new) < 0.3) {
 				//cout << "1";
 				for (int i = 0; i < 8; ++i) {
 					for (int j = 0; j < 8; ++j) {
