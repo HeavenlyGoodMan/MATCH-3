@@ -101,6 +101,44 @@ public:
 	void drawfigur() {
 		const char* text = "score";
 		glClear(GL_COLOR_BUFFER_BIT);
+		for (double i = -7.5; i < 10; i+=2) {
+			glColor3f(1.0, 0.0, 0.0); // Set color to red
+
+			// Draw the stem
+			glBegin(GL_LINES);
+			glVertex2f(-9, i-0.9); // Start position of the stem
+			glVertex2f(-9, i-0.3); // End position of the stem
+			glVertex2f(9, i - 0.9); // Start position of the stem
+			glVertex2f(9, i - 0.3); // End position of the stem
+			glEnd();
+
+			// Draw the petals
+			glColor3f(1.0, 1.0, 0.0); // Set color to yellow
+			for (int j = 0; j < 360; j += 30) {
+				float radian1 = j * 3.14159 / 180;
+				float radian2 = (j + 15) * 3.14159 / 180;
+				float x1 = 0.2 * cos(radian1)-9;
+				float y1 = 0.2 * sin(radian1)+i;
+				float x2 = 0.4 * cos(radian2)-9;
+				float y2 = 0.4 * sin(radian2)+i;
+				glBegin(GL_TRIANGLES);
+				glVertex2f(-9, i); // Center of the flower
+				glVertex2f(x1, y1); // First point of the petal
+				glVertex2f(x2, y2); // Second point of the petal
+				glEnd();
+				x1 = 0.2 * cos(radian1) + 9;
+				y1 = 0.2 * sin(radian1) + i;
+				x2 = 0.4 * cos(radian2) + 9;
+				y2 = 0.4 * sin(radian2) + i;
+				glBegin(GL_TRIANGLES);
+				glVertex2f(9, i); // Center of the flower
+				glVertex2f(x1, y1); // First point of the petal
+				glVertex2f(x2, y2); // Second point of the petal
+				glEnd();
+			}
+		}
+		glClearColor(0.0f, 0.2f, 0.2f, 0.5f);
+
 		glColor3f(1, 0.5, 0.6);
 		glLineWidth(2);
 		glBegin(GL_LINES);
@@ -123,25 +161,34 @@ public:
 			glVertex2f(i, 8);
 		}
 		glEnd();
-		glBegin(GL_POLYGON);
-		glColor3f(0.2, 0.5, 0.7);
-		glVertex2f(-4, 8.2);
-		glVertex2f(4, 8.2);
-		glVertex2f(4, 9.8);
-		glVertex2f(-4, 9.8);
-		glEnd();
 		string times = std::to_string(timeRemaining);
 		times = "FAST FAST FAST! " + times;
 		float textX = -2.8;
-		float textY = -8.6;
+		float textY = -9;
 		glRasterPos2f(textX, textY);
 		for (const char& character : times) {
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
 		}
-		glColor3f(0.1, 0.9, 0.7);
+
+		glColor3f(1, 0.7, 0.2);
 		string numberString = std::to_string(score);
-		numberString = "SCORE " + numberString + "/200";
+		numberString = "SCORE " + numberString + "/1000";
 		textX = -4.5 + 2.7;
+		textY = 8.2 + 0.6;
+		glRasterPos2f(textX, textY);
+		for (const char& character : numberString) {
+			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
+		}
+		glColor3f(0, 1, 1);
+		glBegin(GL_POLYGON);
+		glVertex2f(4.1,8.7);
+		glVertex2f(5.9, 8.7);
+		glVertex2f(5.9, 9.3);
+		glVertex2f(4.1,9.3);
+		glEnd();
+		glColor3f(1, 0, 0);
+		numberString = "EXIT";
+		textX = 4.3;
 		textY = 8.2 + 0.6;
 		glRasterPos2f(textX, textY);
 		for (const char& character : numberString) {
@@ -207,7 +254,7 @@ public:
 				}
 				else if (el[i][j] == 7) {
 					glBegin(GL_QUADS);
-					glColor3f(1, 1, 1); // устанавливаем цвет красный
+					glColor3f(0.0, 0.2, 0.2); // устанавливаем цвет красный
 					glVertex2f(2 * j - 7.95, 2 * i - 7.95);
 					glVertex2f(2 * j - 6.05, 2 * i - 7.95);
 					glVertex2f(2 * j - 6.05, 2 * i - 6.05);
@@ -377,7 +424,7 @@ public:
 							i = 0;
 							j = 0;
 						}
-						if (score >= 200) {
+						if (score >= 1000) {
 							gameOver = 2;
 							glutPostRedisplay();
 						}
@@ -413,13 +460,13 @@ void display() {
 				glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
 			}
 			glBegin(GL_POLYGON);
-			glColor3f(1, 0.5, 1);
+			glColor3f(0.2, 0.7, 0.2);
 			glVertex2f(-1, -4);
 			glVertex2f(-1 + 2.1, -4);
 			glVertex2f(-1 + 2.1, -4 + 1);
 			glVertex2f(-1, -4 + 1);
 			glEnd();
-			glColor3f(0.2, 0.5, 0.7);
+			glColor3f(0.2, 0.5, 0.2);
 			numberString = "AGAIN";
 			textX = -1.0 + 0.1;
 			textY = -4 + 0.3;
@@ -431,23 +478,24 @@ void display() {
 		}
 		else {
 			timeRemaining = 0;
+			A.emtpy();
 			//cout << "2";
-			glColor3f(0, 0, 0);
+			glColor3f(0.2, 0.2, 1);
 			string numberString = "YOU WIN!";
 			float textX = -1.3;
-			float textY = 0;
+			float textY = 0.4;
 			glRasterPos2f(textX, textY);
 			for (const char& character : numberString) {
 				glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
 			}
 			glBegin(GL_POLYGON);
-			glColor3f(1, 0.5, 1);
+			glColor3f(0.2, 0.7, 0.2);
 			glVertex2f(-1.7, -4);
-			glVertex2f(-1.7 + 3.2, -4);
-			glVertex2f(-1.7 + 3.2, -4 + 1);
+			glVertex2f(-1.7 + 3.4, -4);
+			glVertex2f(-1.7 + 3.4, -4 + 1);
 			glVertex2f(-1.7, -4 + 1);
 			glEnd();
-			glColor3f(0.1, 0.5, 0.3);
+			glColor3f(1, 0.2, 0.3);
 			numberString = "NEXT LVL?";
 			textX = -1.7 + 0.1;
 			textY = -4 + 0.3;
@@ -459,23 +507,24 @@ void display() {
 		}
 	}
 	else if (gameOver == 1) {
+		A.emtpy();
 		cout << "1";
-		glColor3f(0.5, 0.2, 0.7);
+		glColor3f(0.9, 0.1, 0.2);
 		string numberString = "YOU LOSE!";
-		float textX = -1.3;
-		float textY = 0;
+		float textX = -1.4;
+		float textY = 0.2;
 		glRasterPos2f(textX, textY);
 		for (const char& character : numberString) {
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
 		}
 		glBegin(GL_POLYGON);
-		glColor3f(1, 0.5, 1);
+		glColor3f(0.2, 0.7, 0.2);
 		glVertex2f(-1, -4);
 		glVertex2f(-1 + 2.1, -4);
 		glVertex2f(-1 + 2.1, -4 + 1);
 		glVertex2f(-1, -4 + 1);
 		glEnd();
-		glColor3f(0.2, 0.5, 0.7);
+		glColor3f(0.1, 0.2, 1);
 		numberString = "AGAIN";
 		textX = -1.0 + 0.1;
 		textY = -4 + 0.3;
@@ -500,6 +549,9 @@ void mouseClickHandler(int button, int state, int x, int y) {
 			int i1, j1, i2, j2;
 			x_new = (x - 415) / 41.5;
 			y_new = -(y - 415) / 41.5;
+			if (x_new < 5.9 && x_new>4.1 && y_new > 8.7 && y_new < 9.3) {
+				exit(0);
+			}
 			if (x_new == x_old && y_new == y_old) {
 				for (int i = 0; i < 8; ++i) {
 					for (int j = 0; j < 8; ++j) {
@@ -630,7 +682,7 @@ void mouseClickHandler(int button, int state, int x, int y) {
 			x_old = (x - 415) / 41.5;
 			y_old = -(y - 415) / 41.5;
 			cout << x_old << " " << y_old << endl;
-			if (x_old<1.2 && x_old>-1 && y_old < -3 && y_old > -4 && time_lvl > 10) {
+			if (x_old<1.7 && x_old>-1.7 && y_old < -3 && y_old > -4 && time_lvl > 10) {
 				figurki B;
 				A = B;
 				time_lvl -= 10;
