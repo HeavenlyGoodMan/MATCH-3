@@ -32,6 +32,13 @@ void timers(int value) {
 	glutTimerFunc(1000, timers, 0);
 	glutPostRedisplay();
 }
+bool eq(int x, int y, int z) {
+	//cout << x << " " << y << " " << z << endl;
+	if ((x == y || x == 6 || y == 6) && (x == z || z == 6 || x == 6) && (y == z || y == 6 || z == 6)) {
+		return 1;
+	}
+	return 0;
+}
 struct figurki
 {
 private:
@@ -45,16 +52,16 @@ public:
 		int x;
 		for (int i = 0; i < 8; ++i) {
 			for (int j = 0; j < 8; ++j) {
-				x = rand() % 6;
-				if (x == 5) {
-					x = rand() % 6;
-					if (x != 5) {
-						x = rand() % 6;
+				x = rand() % 7;
+				if (x == 5 || x == 6) {
+					x = rand() % 7;
+					if (x != 6) {
+						x = rand() % 7;
 					}
 				}
-				while ((i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == x)
-					|| (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == x)) {
-					x = rand() % 6;
+				while ((i > 1 && eq(el[i - 2][j], el[i - 1][j], x))
+					|| (j > 1 && eq(el[i][j - 2], el[i][j - 1], x))) {
+					x = rand() % 7;
 				}
 				el[i][j] = x;
 			}
@@ -82,8 +89,8 @@ public:
 	bool access() {
 		for (int i = 0; i < 8; ++i) {
 			for (int j = 0; j < 8; ++j) {
-				if ((i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == el[i][j])
-					|| (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == el[i][j])) {
+				if ((i > 1 && eq(el[i - 2][j], el[i - 1][j], el[i][j]))
+					|| (j > 1 && eq(el[i][j - 2], el[i][j - 1], el[i][j]))) {
 					return true;
 				}
 			}
@@ -131,7 +138,6 @@ public:
 		for (const char& character : times) {
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
 		}
-		glFlush();
 		glColor3f(0.1, 0.9, 0.7);
 		string numberString = std::to_string(score);
 		numberString = "SCORE " + numberString + "/200";
@@ -199,7 +205,7 @@ public:
 					glEnd();
 
 				}
-				else if (el[i][j] == 6) {
+				else if (el[i][j] == 7) {
 					glBegin(GL_QUADS);
 					glColor3f(1, 1, 1); // устанавливаем цвет красный
 					glVertex2f(2 * j - 7.95, 2 * i - 7.95);
@@ -235,10 +241,34 @@ public:
 					glVertex2f(2 * j - 7, 2 * i - 6);
 					glEnd();
 				}
+				else if (el[i][j] == 6) {
+					double x1 = 2 * j - 7, y1 = 2 * i - 7;
+					glColor3f(1.0, 1.0, 0.0); // Желтый цвет
+					glBegin(GL_POLYGON);
+					for (int i = 0; i < 5; ++i) {
+						float angle = 2 * M_PI * i / 5;
+						float x = 0.9 * sin(angle) + x1;
+						float y = 0.9 * cos(angle) + y1;
+						glVertex2f(x, y);
+					}
+					glEnd();
+					glColor3f(1.0, 0.2, 1.0);
+					glBegin(GL_POLYGON);
+					int numSegments = 50;
+					for (int i = 0; i <= numSegments; i++) {
+						double angle = 2.0 * M_PI * i / numSegments;
+						double x = cos(angle) * 0.3 + x1; // радиус круга = 0.5
+						double y = sin(angle) * 0.3 + y1;
+						glVertex2f(x, y);
+					}
+					glEnd();
+				}
 			}
 		}
 		glFlush();
+		glutSwapBuffers();
 	}
+
 	void deletefig(double i1, double j1, double i2, double j2) {
 		swap(el[i1][j1], el[i2][j2]);
 		this->drawfigur();
@@ -247,54 +277,56 @@ public:
 		}
 		glutTimerFunc(500, timer, 0);
 		if (i1 == i2 && j1 == j2) {
-			int x;
+			int x, k;
+			if (i1 == 0) {
+				++i1;
+			}
 			for (int i = i1 - 1; i < i1 + 2; ++i) {
 				for (int j = j1 - 1; j < j1 + 2; ++j) {
-					if (i > 7 || j > 7) {
+					if (i > 7 || j > 7 || i<0 || j<0) {
 						continue;
 					}
-					el[i][j] = 6;
+					el[i][j] = 7;
 				}
 			}
-			this->drawfigur();
+			//this->drawfigur();
 			for (int k = 3; k > 0; --k) {
-				for (int p = k + i1-1; p < 9; ++p) {
-					for (int m = j1-1; m < j1 + 2; ++m) {
-						if (p < 8 && m<8 && m>-1 && p>-1) {
+				for (int p = k + i1 - 1; p < 9; ++p) {
+					for (int m = j1 - 1; m < j1 + 2; ++m) {
+						if (p < 8 && m<8 && m>-1 && p>0) {
 							swap(el[p][m], el[p - 1][m]);
 						}
-						else if(p<9 && m<8 && m>-1 && p>-1){
+						else if (p<9 && m<8 && m>-1 && p>0) {
 							x = rand() % 5;
 							swap(el[p - 1][m], x);
 						}
 					}
 				}
-				std::this_thread::sleep_for(std::chrono::milliseconds(200));
+				std::this_thread::sleep_for(std::chrono::milliseconds(250));
 				this->drawfigur();
 				score += 15;
 			}
 		}
-		else {
-			int count, old_i = 0, l, old_j, gloval_l = 0;
+		int count, old_i = 0, l, old_j, gloval_l = 0;
 			while (true) {
 				gloval_l = 0;
 				for (int i = 0; i < 8; ++i) {
 					for (int j = 0; j < 8; ++j) {
 						l = 0;
-						if (i > 1 && el[i - 2][j] == el[i - 1][j] && el[i - 2][j] == el[i][j]) {
+						if (i > 1 && eq(el[i - 2][j], el[i - 1][j], el[i][j])) {
 							gloval_l = 1;
 							l = 1;
 							old_i = i - 2;
 							count = 3;
 							++i;
-							while (i < 8 && el[i][j] == el[i - 1][j]) {
+							while (i < 8 && (el[i][j] == el[old_i][j] || el[i][j] == 6 )) {
 								++count;
 								++i;
 							}
 							for (int k = old_i; k < old_i + count; ++k) {
-								el[k][j] = 6;
+								el[k][j] = 7;
 							}
-							this->drawfigur();
+							//this->drawfigur();
 							int x;
 							for (int k = count; k > 0; --k) {
 								for (int p = k + old_i; p < 9; ++p) {
@@ -306,27 +338,27 @@ public:
 										swap(el[p - 1][j], x);
 									}
 								}
-								std::this_thread::sleep_for(std::chrono::milliseconds(200));
+								std::this_thread::sleep_for(std::chrono::milliseconds(250));
 								this->drawfigur();
 							}
 							score += pow(2, count);
 							i = 0;
 							j = 0;
 						}
-						else if (j > 1 && el[i][j - 2] == el[i][j - 1] && el[i][j - 2] == el[i][j]) {
+						else if (j > 1 && eq(el[i][j - 2], el[i][j - 1], el[i][j])) {
 							gloval_l = 1;
 							l = 1;
 							old_j = j - 2;
 							count = 3;
 							++j;
-							while (j < 8 && el[i][j] == el[i][j - 1]) {
+							while (j < 8 && (el[i][j] == el[i][old_j] || el[i][j] == 6)) {
 								++count;
 								++j;
 							}
 							for (int k = old_j; k < old_j + count; ++k) {
-								el[i][k] = 6;
+								el[i][k] = 7;
 							}
-							this->drawfigur();
+							//this->drawfigur();
 							int x;
 							for (int p = 1 + i; p < 9; ++p) {
 								for (int m = old_j; m < old_j + count; ++m) {
@@ -338,7 +370,7 @@ public:
 										swap(el[p - 1][m], x);
 									}
 								}
-								std::this_thread::sleep_for(std::chrono::milliseconds(200));
+								std::this_thread::sleep_for(std::chrono::milliseconds(250));
 								this->drawfigur();
 							}
 							score += pow(2, count);
@@ -360,7 +392,6 @@ public:
 				if (gloval_l == 0) {
 					break;
 				}
-			}
 		}
 	}
 
@@ -370,7 +401,7 @@ figurki A;
 void display() {
 	A.drawfigur();
 	if (gameOver == 2) {
-		if(time_lvl==10){
+		if (time_lvl == 10) {
 			timeRemaining = 0;
 			//cout << "2";
 			glColor3f(0, 0, 0);
@@ -397,7 +428,7 @@ void display() {
 				glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
 			}
 			glFlush();
-			}
+		}
 		else {
 			timeRemaining = 0;
 			//cout << "2";
@@ -426,8 +457,8 @@ void display() {
 			}
 			glFlush();
 		}
-		}
-		else if (gameOver == 1) {
+	}
+	else if (gameOver == 1) {
 		cout << "1";
 		glColor3f(0.5, 0.2, 0.7);
 		string numberString = "YOU LOSE!";
@@ -479,7 +510,7 @@ void mouseClickHandler(int button, int state, int x, int y) {
 						}
 					}
 				}
-				if (l1 == 1 && A[i1][j1]==5) {
+				if (l1 == 1 && A[i1][j1] == 5) {
 					A.deletefig(i1, j1, i1, j1);
 				}
 			}
@@ -580,7 +611,7 @@ void mouseClickHandler(int button, int state, int x, int y) {
 			}
 		}
 	}
-	else if(gameOver==1){
+	else if (gameOver == 1) {
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 			x_old = (x - 415) / 41.5;
 			y_old = -(y - 415) / 41.5;
@@ -599,7 +630,7 @@ void mouseClickHandler(int button, int state, int x, int y) {
 			x_old = (x - 415) / 41.5;
 			y_old = -(y - 415) / 41.5;
 			cout << x_old << " " << y_old << endl;
-			if (x_old<1.2 && x_old>-1 && y_old < -3 && y_old > -4 && time_lvl>10) {
+			if (x_old<1.2 && x_old>-1 && y_old < -3 && y_old > -4 && time_lvl > 10) {
 				figurki B;
 				A = B;
 				time_lvl -= 10;
@@ -627,7 +658,7 @@ int main(int argc, char** argv) {
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 	glutInitWindowSize(830, 830);
 	glutInitWindowPosition(270, 0);
-	glutCreateWindow("");
+	glutCreateWindow("MATCH 3333333333333333333333333333333");
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glMatrixMode(GL_PROJECTION);
 	glOrtho(-10, 10, -10, 10, -1, 1);
