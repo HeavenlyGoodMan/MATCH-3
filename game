@@ -13,37 +13,37 @@ using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-using std::pair;
 using std::swap;
-double x_old = 0, y_old = 0;
-int gameOver = 0;
-int time_lvl = 60;
-int timeRemaining = 60;
+struct sets {
+	static double x_old, y_old;
+	static int gameOver;
+	static int time_lvl;
+	static int timeRemaining;
+	static int procent;
+};double sets::x_old = 0, sets::y_old = 0;int sets::gameOver = 0, sets::time_lvl = 60, sets::timeRemaining = 60, sets::procent = 1;
 void timer(int = 0) {
 	glutPostRedisplay();
 }
 void timers(int value) {
-	if (timeRemaining > 0) {
-		timeRemaining--;
+	if (sets::timeRemaining > 0) {
+		sets::timeRemaining--;
 	}
-	else if (gameOver != 2) {
-		gameOver = 1;
+	else if (sets::gameOver != 2) {
+		sets::gameOver = 1;
 	}
 	glutTimerFunc(1000, timers, 0);
 	glutPostRedisplay();
 }
 bool eq(int x, int y, int z) {
-	//cout << x << " " << y << " " << z << endl;
 	if ((x == y || x == 6 || y == 6) && (x == z || z == 6 || x == 6) && (y == z || y == 6 || z == 6)) {
 		return 1;
 	}
 	return 0;
 }
-struct figurki
-{
+
+struct figurki{
 private:
 	vector<vector<int>> el = { {0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0} };
-
 public:
 	vector <vector<double>> colors = { {1,0,0},{0.7,0.4,0.5},{0.8,0,9,0},{0.2,0.9,1},{0.6,0.0,0.3},{0.3,0.5,0.7},{0,0.7,0,4} };
 	int score = 0;
@@ -53,11 +53,8 @@ public:
 		for (int i = 0; i < 8; ++i) {
 			for (int j = 0; j < 8; ++j) {
 				x = rand() % 7;
-				if (x == 5 || x == 6) {
-					x = rand() % 7;
-					if (x != 6) {
+				for (int lvl = 0; lvl < sets::procent && (x==5 || x==6); ++lvl) {
 						x = rand() % 7;
-					}
 				}
 				while ((i > 1 && eq(el[i - 2][j], el[i - 1][j], x))
 					|| (j > 1 && eq(el[i][j - 2], el[i][j - 1], x))) {
@@ -97,23 +94,65 @@ public:
 		}
 		return false;
 	}
-
+	void pererisovka() {
+		figurki A;
+		A = *this;
+		bool l = 0;
+		for (int i = 0; i < 8; ++i) {
+			for (int j = 0; j < 8; ++j) {
+				if (i > 0) {
+					swap(A[i][j], A[i - 1][j]);
+					if (A.access()) {
+						l = 1;
+					}
+					swap(A[i-1][j], A[i][j]);
+				}
+				if (i <7) {
+					swap(A[i][j], A[i +1][j]);
+					if (A.access()) {
+						l = 1;
+					}
+					swap(A[i + 1][j], A[i][j]);
+				}
+				if (j > 0) {
+					swap(A[i][j], A[i][j-1]);
+					if (A.access()) {
+						l = 1;
+					}
+					swap(A[i][j-1], A[i][j]);
+				}
+				if (j <7) {
+					swap(A[i][j], A[i][j + 1]);
+					if (A.access()) {
+						l = 1;
+					}
+					swap(A[i][j + 1], A[i][j]);
+				}
+			}
+			if (l == 1) {
+				break;
+			}
+		}
+		if (l == 0) {
+			figurki B;
+			*this= B;
+			score = A.score;
+		}
+	}
 	void drawfigur() {
 		const char* text = "score";
 		glClear(GL_COLOR_BUFFER_BIT);
 		for (double i = -7.5; i < 10; i+=2) {
-			glColor3f(1.0, 0.0, 0.0); // Set color to red
+			glColor3f(1.0, 0.0, 0.0);
 
-			// Draw the stem
 			glBegin(GL_LINES);
-			glVertex2f(-9, i-0.9); // Start position of the stem
-			glVertex2f(-9, i-0.3); // End position of the stem
-			glVertex2f(9, i - 0.9); // Start position of the stem
-			glVertex2f(9, i - 0.3); // End position of the stem
+			glVertex2f(-9, i-0.9); 
+			glVertex2f(-9, i-0.3); 
+			glVertex2f(9, i - 0.9);
+			glVertex2f(9, i - 0.3); 
 			glEnd();
 
-			// Draw the petals
-			glColor3f(1.0, 1.0, 0.0); // Set color to yellow
+			glColor3f(1.0, 1.0, 0.0); 
 			for (int j = 0; j < 360; j += 30) {
 				float radian1 = j * 3.14159 / 180;
 				float radian2 = (j + 15) * 3.14159 / 180;
@@ -122,22 +161,22 @@ public:
 				float x2 = 0.4 * cos(radian2)-9;
 				float y2 = 0.4 * sin(radian2)+i;
 				glBegin(GL_TRIANGLES);
-				glVertex2f(-9, i); // Center of the flower
-				glVertex2f(x1, y1); // First point of the petal
-				glVertex2f(x2, y2); // Second point of the petal
+				glVertex2f(-9, i); 
+				glVertex2f(x1, y1); 
+				glVertex2f(x2, y2); 
 				glEnd();
 				x1 = 0.2 * cos(radian1) + 9;
 				y1 = 0.2 * sin(radian1) + i;
 				x2 = 0.4 * cos(radian2) + 9;
 				y2 = 0.4 * sin(radian2) + i;
 				glBegin(GL_TRIANGLES);
-				glVertex2f(9, i); // Center of the flower
-				glVertex2f(x1, y1); // First point of the petal
-				glVertex2f(x2, y2); // Second point of the petal
+				glVertex2f(9, i); 
+				glVertex2f(x1, y1); 
+				glVertex2f(x2, y2);
 				glEnd();
 			}
 		}
-		glClearColor(0.0f, 0.2f, 0.2f, 0.5f);
+		glClearColor(0.0, 0.2, 0.2, 0.5);
 
 		glColor3f(1, 0.5, 0.6);
 		glLineWidth(2);
@@ -161,7 +200,7 @@ public:
 			glVertex2f(i, 8);
 		}
 		glEnd();
-		string times = std::to_string(timeRemaining);
+		string times = std::to_string(sets::timeRemaining);
 		times = "FAST FAST FAST! " + times;
 		float textX = -2.8;
 		float textY = -9;
@@ -172,14 +211,14 @@ public:
 
 		glColor3f(1, 0.7, 0.2);
 		string numberString = std::to_string(score);
-		numberString = "SCORE " + numberString + "/1000";
+		numberString = "SCORE " + numberString + "/500";
 		textX = -4.5 + 2.7;
 		textY = 8.2 + 0.6;
 		glRasterPos2f(textX, textY);
 		for (const char& character : numberString) {
 			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, character);
 		}
-		glColor3f(0, 1, 1);
+		glColor3f(0, 1, 0.5);
 		glBegin(GL_POLYGON);
 		glVertex2f(4.1,8.7);
 		glVertex2f(5.9, 8.7);
@@ -198,13 +237,13 @@ public:
 			for (int j = 0; j < 8; ++j) {
 				if (el[i][j] == 0) {
 					double x1 = 2 * j - 7, y1 = 2 * i - 7;
-					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем красный цвет
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);
 					glBegin(GL_TRIANGLE_FAN);
-					glVertex2f(x1, y1); // центр круга
+					glVertex2f(x1, y1); 
 					int numSegments = 50;
 					for (int i = 0; i <= numSegments; i++) {
 						double angle = 2.0 * M_PI * i / numSegments;
-						double x = cos(angle) * 0.8 + x1; // радиус круга = 0.5
+						double x = cos(angle) * 0.8 + x1; 
 						double y = sin(angle) * 0.8 + y1;
 						glVertex2f(x, y);
 					}
@@ -212,7 +251,7 @@ public:
 				}
 				else if (el[i][j] == 1) {
 					glBegin(GL_QUADS);
-					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]); // устанавливаем цвет красный
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]); 
 					glVertex2f(2 * j - 7.75, 2 * i - 7.75);
 					glVertex2f(2 * j - 6.25, 2 * i - 7.75);
 					glVertex2f(2 * j - 6.25, 2 * i - 6.25);
@@ -222,7 +261,7 @@ public:
 				else if (el[i][j] == 2) {
 					double x1 = 2 * j - 7, y1 = 2 * i - 7;
 					glBegin(GL_POLYGON);
-					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);
 					for (int i = 0; i < 6; ++i) {
 						double angle = 2.0 * M_PI * i / 6;
 						glVertex2f(cos(angle) * 0.9 + x1, sin(angle) * 0.9 + y1);
@@ -233,7 +272,7 @@ public:
 				else if (el[i][j] == 3) {
 					double x1 = 2 * j - 7, y1 = 2 * i - 7;
 					glBegin(GL_POLYGON);
-					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);
 					for (int i = 0; i < 4; ++i) {
 						double angle = 2.0 * M_PI * i / 4;
 						glVertex2f((cos(angle) * 0.9 + x1), (sin(angle) * 0.9 + y1));
@@ -244,7 +283,7 @@ public:
 				else if (el[i][j] == 4) {
 					double x1 = 2 * j - 7.2, y1 = 2 * i - 7;
 					glBegin(GL_POLYGON);
-					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);// устанавливаем цвет красный
+					glColor3f(colors[el[i][j]][0], colors[el[i][j]][1], colors[el[i][j]][2]);
 					for (int i = 0; i < 3; ++i) {
 						double angle = -(2.0 * M_PI * i / 3);
 						glVertex2f((cos(angle) * 0.9 + x1), (sin(angle) * 0.9 + y1));
@@ -254,7 +293,7 @@ public:
 				}
 				else if (el[i][j] == 7) {
 					glBegin(GL_QUADS);
-					glColor3f(0.0, 0.2, 0.2); // устанавливаем цвет красный
+					glColor3f(0.0, 0.2, 0.2); 
 					glVertex2f(2 * j - 7.95, 2 * i - 7.95);
 					glVertex2f(2 * j - 6.05, 2 * i - 7.95);
 					glVertex2f(2 * j - 6.05, 2 * i - 6.05);
@@ -262,15 +301,14 @@ public:
 					glEnd();
 				}
 				else if (el[i][j] == 5) {
-					// Рисуем черный круг
 					double x1 = 2 * j - 7, y1 = 2 * i - 7;
 					glColor3f(0.0, 0.0, 0.0);
 					glBegin(GL_TRIANGLE_FAN);
-					glVertex2f(x1, y1); // центр круга
+					glVertex2f(x1, y1); 
 					int numSegments = 50;
 					for (int i = 0; i <= numSegments; i++) {
 						double angle = 2.0 * M_PI * i / numSegments;
-						double x = cos(angle) * 0.8 + x1; // радиус круга = 0.5
+						double x = cos(angle) * 0.8 + x1;
 						double y = sin(angle) * 0.8 + y1;
 						glVertex2f(x, y);
 					}
@@ -282,7 +320,6 @@ public:
 					glVertex2f(2 * j - 7, 2 * i - 6);
 					glEnd();
 					glPointSize(7);
-					// Рисуем красный кружок в конце палки
 					glColor3f(1.0, 0.0, 0.0);
 					glBegin(GL_POINTS);
 					glVertex2f(2 * j - 7, 2 * i - 6);
@@ -290,7 +327,7 @@ public:
 				}
 				else if (el[i][j] == 6) {
 					double x1 = 2 * j - 7, y1 = 2 * i - 7;
-					glColor3f(1.0, 1.0, 0.0); // Желтый цвет
+					glColor3f(1.0, 1.0, 0.0); 
 					glBegin(GL_POLYGON);
 					for (int i = 0; i < 5; ++i) {
 						float angle = 2 * M_PI * i / 5;
@@ -304,7 +341,7 @@ public:
 					int numSegments = 50;
 					for (int i = 0; i <= numSegments; i++) {
 						double angle = 2.0 * M_PI * i / numSegments;
-						double x = cos(angle) * 0.3 + x1; // радиус круга = 0.5
+						double x = cos(angle) * 0.3 + x1; 
 						double y = sin(angle) * 0.3 + y1;
 						glVertex2f(x, y);
 					}
@@ -336,7 +373,6 @@ public:
 					el[i][j] = 7;
 				}
 			}
-			//this->drawfigur();
 			for (int k = 3; k > 0; --k) {
 				for (int p = k + i1 - 1; p < 9; ++p) {
 					for (int m = j1 - 1; m < j1 + 2; ++m) {
@@ -344,7 +380,10 @@ public:
 							swap(el[p][m], el[p - 1][m]);
 						}
 						else if (p<9 && m<8 && m>-1 && p>0) {
-							x = rand() % 5;
+							x = rand() % 7;
+							for (int lvl = 0; lvl < sets::procent && (x == 5 || x == 6); ++lvl) {
+								x = rand() % 7;
+							}
 							swap(el[p - 1][m], x);
 						}
 					}
@@ -366,14 +405,13 @@ public:
 							old_i = i - 2;
 							count = 3;
 							++i;
-							while (i < 8 && (el[i][j] == el[old_i][j] || el[i][j] == 6 )) {
+							while (i < 8 && (el[i][j] == el[old_i][j] || el[i][j] == 6 || el[i][j]==el[i-1][j] || el[i][j] == el[i - 2][j]) ) {
 								++count;
 								++i;
 							}
 							for (int k = old_i; k < old_i + count; ++k) {
 								el[k][j] = 7;
 							}
-							//this->drawfigur();
 							int x;
 							for (int k = count; k > 0; --k) {
 								for (int p = k + old_i; p < 9; ++p) {
@@ -381,7 +419,10 @@ public:
 										swap(el[p][j], el[p - 1][j]);
 									}
 									else {
-										x = rand() % 5;
+										x = rand() % 7;
+										for (int lvl = 0; lvl < sets::procent && (x == 5 || x == 6); ++lvl) {
+											x = rand() % 7;
+										}
 										swap(el[p - 1][j], x);
 									}
 								}
@@ -398,14 +439,13 @@ public:
 							old_j = j - 2;
 							count = 3;
 							++j;
-							while (j < 8 && (el[i][j] == el[i][old_j] || el[i][j] == 6)) {
+							while (j < 8 && (el[i][j] == el[i][old_j] || el[i][j] == 6 || el[i][j] == el[i][j-1] || el[i][j] == el[i][j-2])) {
 								++count;
 								++j;
 							}
 							for (int k = old_j; k < old_j + count; ++k) {
 								el[i][k] = 7;
 							}
-							//this->drawfigur();
 							int x;
 							for (int p = 1 + i; p < 9; ++p) {
 								for (int m = old_j; m < old_j + count; ++m) {
@@ -413,7 +453,10 @@ public:
 										swap(el[p][m], el[p - 1][m]);
 									}
 									else {
-										x = rand() % 5;
+										x = rand() % 7;
+										for (int lvl = 0; lvl < sets::procent && (x == 5 || x == 6); ++lvl) {
+											x = rand() % 7;
+										}
 										swap(el[p - 1][m], x);
 									}
 								}
@@ -424,8 +467,8 @@ public:
 							i = 0;
 							j = 0;
 						}
-						if (score >= 1000) {
-							gameOver = 2;
+						if (score >= 500) {
+							sets::gameOver = 2;
 							glutPostRedisplay();
 						}
 						if (l == 1) {
@@ -443,14 +486,14 @@ public:
 	}
 
 };
-figurki A;
-//хранение моих фигурок, которые мы двигаем;
+struct mains {
+	static figurki A;
+}; figurki mains::A;
 void display() {
-	A.drawfigur();
-	if (gameOver == 2) {
-		if (time_lvl == 10) {
-			timeRemaining = 0;
-			//cout << "2";
+	mains::A.drawfigur();
+	if (sets::gameOver == 2) {
+		if (sets::time_lvl == 10) {
+			sets::timeRemaining = 0;
 			glColor3f(0, 0, 0);
 			string numberString = "YOU COMPLETED THE GAME!";
 			float textX = -4.2;
@@ -477,8 +520,8 @@ void display() {
 			glFlush();
 		}
 		else {
-			timeRemaining = 0;
-			A.emtpy();
+			sets::timeRemaining = 0;
+			mains::A.emtpy();
 			//cout << "2";
 			glColor3f(0.2, 0.2, 1);
 			string numberString = "YOU WIN!";
@@ -506,8 +549,8 @@ void display() {
 			glFlush();
 		}
 	}
-	else if (gameOver == 1) {
-		A.emtpy();
+	else if (sets::gameOver == 1) {
+		mains::A.emtpy();
 		cout << "1";
 		glColor3f(0.9, 0.1, 0.2);
 		string numberString = "YOU LOSE!";
@@ -538,62 +581,47 @@ void display() {
 	glutSwapBuffers();
 }
 void mouseClickHandler(int button, int state, int x, int y) {
-	if (gameOver == 0) {
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+		double x_new, y_new;
+		int l1 = 0, l2 = 0;
+		int i1, j1, i2, j2;
+		x_new = (x - 415) / 41.5;
+		y_new = -(y - 415) / 41.5;
+		if (x_new < 5.9 && x_new>4.1 && y_new > 8.7 && y_new < 9.3) {
+			exit(0);
+		}
+	}
+	if (sets::gameOver == 0) {
 		double x_new, y_new;
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-			x_old = (x - 415) / 41.5;
-			y_old = -(y - 415) / 41.5;
+			sets::x_old = (x - 415) / 41.5;
+			sets::y_old = -(y - 415) / 41.5;
 		}
 		else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
 			int l1 = 0, l2 = 0;
 			int i1, j1, i2, j2;
 			x_new = (x - 415) / 41.5;
 			y_new = -(y - 415) / 41.5;
-			if (x_new < 5.9 && x_new>4.1 && y_new > 8.7 && y_new < 9.3) {
-				exit(0);
-			}
-			if (x_new == x_old && y_new == y_old) {
+			if (x_new == sets::x_old && y_new == sets::y_old) {
 				for (int i = 0; i < 8; ++i) {
 					for (int j = 0; j < 8; ++j) {
-						if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+						if (j * 2 - 8 < sets::x_old && j * 2 - 6 > sets::x_old && 
+							i * 2 - 8 < sets::y_old && i * 2 - 6 > sets::y_old) {
 							i1 = i;
 							j1 = j;
 							l1 = 1;
 						}
 					}
 				}
-				if (l1 == 1 && A[i1][j1] == 5) {
-					A.deletefig(i1, j1, i1, j1);
+				if (l1 == 1 && mains::A[i1][j1] == 5) {
+					mains::A.deletefig(i1, j1, i1, j1);
 				}
 			}
-			else if (x_old - x_new > 1 && x_old - x_new < 2.5 && abs(y_old - y_new) < 0.3) {
-				//cout << "1";
+			else if (sets::x_old - x_new > 1 && sets::x_old - x_new < 2.5 && abs(sets::y_old - y_new) < 0.3) {
 				for (int i = 0; i < 8; ++i) {
 					for (int j = 0; j < 8; ++j) {
-						if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
-							i1 = i;
-							j1 = j;
-							l1 = 1;
-						}
-						if (j * 2 - 8 < x_new && j * 2 - 6 > x_new && i * 2 - 8 < y_new && i * 2 - 6 > y_new) {
-							i2 = i;
-							j2 = j;
-							l2 = 1;
-						}
-					}
-					if (l1 == 1 && l2 == 1) {
-						break;
-					}
-				}
-				if (l1 == 1 && l2 == 1) {
-					A.deletefig(i1, j1, i2, j2);
-				}
-			}
-			else if (x_new - x_old > 1 && x_new - x_old < 2.5 && abs(y_old - y_new) < 0.3) {
-				//	cout << "2";
-				for (int i = 0; i < 8; ++i) {
-					for (int j = 0; j < 8; ++j) {
-						if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+						if (j * 2 - 8 < sets::x_old && j * 2 - 6 > sets::x_old && 
+							i * 2 - 8 < sets::y_old && i * 2 - 6 > sets::y_old) {
 							i1 = i;
 							j1 = j;
 							l1 = 1;
@@ -609,14 +637,14 @@ void mouseClickHandler(int button, int state, int x, int y) {
 					}
 				}
 				if (l1 == 1 && l2 == 1) {
-					A.deletefig(i1, j1, i2, j2);
+					mains::A.deletefig(i1, j1, i2, j2);
 				}
 			}
-			else if (y_old - y_new > 1 && y_old - y_new < 2.5 && abs(x_old - x_new) < 0.3) {
-				//	cout << "3";
+			else if (x_new - sets::x_old > 1 && x_new - sets::x_old < 2.5 && abs(sets::y_old - y_new) < 0.3) {
 				for (int i = 0; i < 8; ++i) {
 					for (int j = 0; j < 8; ++j) {
-						if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+						if (j * 2 - 8 < sets::x_old && j * 2 - 6 > sets::x_old && 
+							i * 2 - 8 < sets::y_old && i * 2 - 6 > sets::y_old) {
 							i1 = i;
 							j1 = j;
 							l1 = 1;
@@ -632,16 +660,14 @@ void mouseClickHandler(int button, int state, int x, int y) {
 					}
 				}
 				if (l1 == 1 && l2 == 1) {
-					///
-					A.deletefig(i1, j1, i2, j2);
-
+					mains::A.deletefig(i1, j1, i2, j2);
 				}
 			}
-			else if (y_new - y_old > 1 && y_new - y_old < 2.5 && abs(x_old - x_new) < 0.3) {
-				//	cout << "4";
+			else if (sets::y_old - y_new > 1 && sets::y_old - y_new < 2.5 && abs(sets::x_old - x_new) < 0.3) {
 				for (int i = 0; i < 8; ++i) {
 					for (int j = 0; j < 8; ++j) {
-						if (j * 2 - 8 < x_old && j * 2 - 6 > x_old && i * 2 - 8 < y_old && i * 2 - 6 > y_old) {
+						if (j * 2 - 8 < sets::x_old && j * 2 - 6 > sets::x_old &&
+							i * 2 - 8 < sets::y_old && i * 2 - 6 > sets::y_old) {
 							i1 = i;
 							j1 = j;
 							l1 = 1;
@@ -657,45 +683,68 @@ void mouseClickHandler(int button, int state, int x, int y) {
 					}
 				}
 				if (l1 == 1 && l2 == 1) {
-					///
-					A.deletefig(i1, j1, i2, j2);
+					mains::A.deletefig(i1, j1, i2, j2);
+				}
+			}
+			else if (y_new - sets::y_old > 1 && y_new - sets::y_old < 2.5 && abs(sets::x_old - x_new) < 0.3) {
+				for (int i = 0; i < 8; ++i) {
+					for (int j = 0; j < 8; ++j) {
+						if (j * 2 - 8 < sets::x_old && j * 2 - 6 > sets::x_old && 
+							i * 2 - 8 < sets::y_old && i * 2 - 6 > sets::y_old) {
+							i1 = i;
+							j1 = j;
+							l1 = 1;
+						}
+						if (j * 2 - 8 < x_new && j * 2 - 6 > x_new && i * 2 - 8 < y_new && i * 2 - 6 > y_new) {
+							i2 = i;
+							j2 = j;
+							l2 = 1;
+						}
+					}
+					if (l1 == 1 && l2 == 1) {
+						break;
+					}
+				}
+				if (l1 == 1 && l2 == 1) {
+					mains::A.deletefig(i1, j1, i2, j2);
 				}
 			}
 		}
 	}
-	else if (gameOver == 1) {
+	else if (sets::gameOver == 1) {
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-			x_old = (x - 415) / 41.5;
-			y_old = -(y - 415) / 41.5;
-			cout << x_old << " " << y_old << endl;
-			if (x_old<1.5 && x_old>-1.7 && y_old < -3 && y_old > -4) {
+			sets::x_old = (x - 415) / 41.5;
+			sets::y_old = -(y - 415) / 41.5;
+			if (sets::x_old<1.5 && sets::x_old>-1.7 && sets::y_old < -3 && sets::y_old > -4) {
 				figurki B;
-				A = B;
-				timeRemaining = 60;
-				time_lvl = 60;
-				gameOver = 0;
+				mains::A = B;
+				sets::timeRemaining = 60;
+				sets::time_lvl = 60;
+				sets::gameOver = 0;
+				sets::procent = 1;
 			}
 		}
 	}
 	else {
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-			x_old = (x - 415) / 41.5;
-			y_old = -(y - 415) / 41.5;
-			cout << x_old << " " << y_old << endl;
-			if (x_old<1.7 && x_old>-1.7 && y_old < -3 && y_old > -4 && time_lvl > 10) {
+			sets::x_old = (x - 415) / 41.5;
+			sets::y_old = -(y - 415) / 41.5;
+			if (sets::x_old<1.7 && sets::x_old>-1.7 && sets::y_old < -3 && sets::y_old > -4 && sets::time_lvl > 10) {
 				figurki B;
-				A = B;
-				time_lvl -= 10;
-				timeRemaining = time_lvl;
-				gameOver = 0;
+				mains::A = B;
+				sets::time_lvl -= 10;
+				++sets::procent;
+				sets::timeRemaining = sets::time_lvl;
+				sets::gameOver = 0;
 			}
 			else {
-				if (x_old<1.5 && x_old>-1.7 && y_old < -3 && y_old > -4) {
+				if (sets::x_old<1.5 && sets::x_old>-1.7 && sets::y_old < -3 && sets::y_old > -4) {
 					figurki B;
-					A = B;
-					timeRemaining = 60;
-					time_lvl = 60;
-					gameOver = 0;
+					mains::A = B;
+					sets::timeRemaining = 60;
+					sets::time_lvl = 60;
+					sets::gameOver = 0;
+					sets::procent = 1;
 				}
 			}
 		}
